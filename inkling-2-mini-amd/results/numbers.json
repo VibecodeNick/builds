@@ -1,0 +1,215 @@
+{
+  "what": "Inkling 2 Mini on Radeon AI PRO R9700 (gfx1201), Radiance 689f554596d668c24efcf60f0ea74e47c7b01338 + patches/radiance-inkling2-gfx1201.patch",
+  "conditions": "one request at a time, server-side timings, 210 W power cap on each card, int8 KV cache, 16,384-token profile unless a row says otherwise; the two prompt rows used their own profiles, not shipped here (2,048-token and 512-token prefill chunks)",
+  "checkpoint": "OpenUncensored/Inkling-2-Mini-Uncensored at revision 748f78ee942acf376d4e11eac92f6c3034c84ddb, a fine-tune of thinkingmachines/Inkling-2-Mini with the same architecture, not the stock download",
+  "note": "Engine speed figures. Draft-off decode and prompt processing do not depend on the values of the weights, so they hold for any checkpoint of this architecture. Draft-on decode also depends on how often the draft is accepted.",
+  "packages": {
+    "1gpu": {
+      "decode_draft_on_prose_tok_s": 84.6,
+      "decode_draft_on_code_tok_s": 97.9,
+      "decode_draft_off_ms_per_token": 14.32,
+      "decode_draft_off_tok_s": 69.9,
+      "decode_draft_off_code_tok_s": 69.7,
+      "prompt_16384_cold_tok_s": 1960,
+      "prompt_72644_cold_time_to_first_token_s": 66.1,
+      "draft_window": 3,
+      "kernel_launches_per_decode_step_approx": 1700
+    },
+    "2gpu": {
+      "decode_draft_on_prose_tok_s": 102.3,
+      "decode_draft_on_code_tok_s": 118.5,
+      "decode_draft_off_tok_s": 86.5,
+      "decode_draft_off_code_tok_s": 86.3,
+      "decode_draft_off_ms_per_token": 11.57,
+      "prompt_16384_cold_tok_s": null,
+      "prompt_72644_cold_time_to_first_token_s": null,
+      "draft_window": 3
+    }
+  },
+  "changes_one_card": [
+    {
+      "change": "before the changes below",
+      "prompt_16384_tok_s": 1286,
+      "prompt_72644_ttft_s": 90.41,
+      "decode_draft_off_ms_per_token": 16.88,
+      "decode_draft_on_prose_tok_s": 61.2,
+      "decode_draft_on_code_tok_s": 75.7,
+      "build": "earlier build"
+    },
+    {
+      "change": "loop controller at prefill heights",
+      "prompt_16384_tok_s": 1417,
+      "prompt_72644_ttft_s": 84.9,
+      "decode_draft_off_ms_per_token": 16.85,
+      "decode_draft_on_prose_tok_s": 61.4,
+      "decode_draft_on_code_tok_s": 75.7,
+      "build": "earlier build"
+    },
+    {
+      "change": "int8 KV codes to BF16 by a shift",
+      "prompt_16384_tok_s": 1461,
+      "prompt_72644_ttft_s": 79.84,
+      "decode_draft_off_ms_per_token": 17.01,
+      "decode_draft_on_prose_tok_s": 61.1,
+      "decode_draft_on_code_tok_s": 75.6,
+      "build": "earlier build"
+    },
+    {
+      "change": "exact float-float tanh",
+      "prompt_16384_tok_s": 1817,
+      "prompt_72644_ttft_s": 70.09,
+      "decode_draft_off_ms_per_token": 16.09,
+      "decode_draft_on_prose_tok_s": 65.4,
+      "decode_draft_on_code_tok_s": 80.9,
+      "build": "earlier build"
+    },
+    {
+      "change": "query and gate projections as one GEMM",
+      "prompt_16384_tok_s": 1780,
+      "prompt_72644_ttft_s": 70.52,
+      "decode_draft_off_ms_per_token": 15.91,
+      "decode_draft_on_prose_tok_s": 65.9,
+      "decode_draft_on_code_tok_s": 81.5,
+      "build": "earlier build"
+    },
+    {
+      "change": "relative-position bias table transposed",
+      "prompt_16384_tok_s": 1878,
+      "prompt_72644_ttft_s": 67.79,
+      "decode_draft_off_ms_per_token": 15.94,
+      "decode_draft_on_prose_tok_s": 65.8,
+      "decode_draft_on_code_tok_s": 81.4,
+      "build": "earlier build"
+    },
+    {
+      "change": "expert activation and its quantizer as one launch",
+      "prompt_16384_tok_s": 1919,
+      "prompt_72644_ttft_s": 67.11,
+      "decode_draft_off_ms_per_token": 15.78,
+      "decode_draft_on_prose_tok_s": 66.0,
+      "decode_draft_on_code_tok_s": 81.6,
+      "build": "earlier build"
+    },
+    {
+      "change": "depth-mix statistics in float-float",
+      "prompt_16384_tok_s": 1969,
+      "prompt_72644_ttft_s": 66.11,
+      "decode_draft_off_ms_per_token": 15.86,
+      "decode_draft_on_prose_tok_s": 65.7,
+      "decode_draft_on_code_tok_s": 81.4,
+      "build": "earlier build"
+    },
+    {
+      "change": "the same int8 shift in decode attention",
+      "prompt_16384_tok_s": 1969,
+      "prompt_72644_ttft_s": 65.95,
+      "decode_draft_off_ms_per_token": 15.86,
+      "decode_draft_on_prose_tok_s": 65.8,
+      "decode_draft_on_code_tok_s": 81.5,
+      "build": "earlier build"
+    }
+  ],
+  "checks": {
+    "greedy_token_ids_equal_to_reference": {
+      "of": 88,
+      "1gpu_draft_off": 88,
+      "1gpu_draft_on_window_3": 88,
+      "2gpu_draft_off": 88,
+      "2gpu_draft_on_window_3": 88
+    },
+    "strict_kernel_replay_tolerance_0": {
+      "cases": 117,
+      "passed": 117
+    },
+    "tanh_ff_sweep": {
+      "range": "[-16, 16]",
+      "values": 2197815298,
+      "values_as_printed_by_the_sweep_counter": 2197815808,
+      "mismatches": 0,
+      "share_through_fp64_path_percent": 1.53
+    },
+    "long_token_equality_this_build": {
+      "1gpu_1200_tokens_x4_prompts": "draft off, window 3, seven drafts, adaptive: identical",
+      "1gpu_5000_tokens_x2_prompts": "window 3 and seven drafts identical to draft off",
+      "1gpu_9500_tokens_x1_prompt": "window 3 and adaptive identical to draft off",
+      "2gpu_1200_tokens_x4_prompts": "draft off and window 3 identical to one-card draft off",
+      "2gpu_5000_tokens_x1_prompt": "window 3 identical",
+      "earlier_build_miss": "with seven drafts a step, output left the draft-off output after 40 to 142 tokens on four prompts; with a window of three or four it left after the context passed 1,024 tokens (first difference at token 988 to 1,182 on three of four prompts); fixed in this build"
+    },
+    "packs_made_by_convert_sh": {
+      "checkpoint": "the fine-tune named in the checkpoint field above, same revision",
+      "convert_1gpu_seconds": 119,
+      "convert_2gpu_seconds": 13,
+      "2gpu_pack_on_two_cards_token_ids_equal": "88 of 88",
+      "1gpu_pack_on_one_card_token_ids_equal": "88 of 88",
+      "stock_download_pack_served": false
+    }
+  },
+  "changes_one_card_third_round": [
+    {
+      "change": "after the second round, seven drafts a step",
+      "decode_draft_off_ms_per_token": 15.86,
+      "decode_draft_on_prose_tok_s": 65.8,
+      "decode_draft_on_code_tok_s": 81.5,
+      "build": "earlier build"
+    },
+    {
+      "change": "draft window of three",
+      "decode_draft_off_ms_per_token": 15.86,
+      "decode_draft_on_prose_tok_s": 78.7,
+      "decode_draft_on_code_tok_s": 91.0,
+      "build": "earlier build"
+    },
+    {
+      "change": "depth-mix sums as a tree, loads first",
+      "decode_draft_off_ms_per_token": 15.75,
+      "decode_draft_on_prose_tok_s": 78.8,
+      "decode_draft_on_code_tok_s": 91.2,
+      "build": "earlier build"
+    },
+    {
+      "change": "a visit's depth mixes as one launch",
+      "decode_draft_off_ms_per_token": 15.54,
+      "decode_draft_on_prose_tok_s": 79.6,
+      "decode_draft_on_code_tok_s": 92.1,
+      "build": "earlier build"
+    },
+    {
+      "change": "a visit's three controllers side by side",
+      "decode_draft_off_ms_per_token": 15.18,
+      "decode_draft_on_prose_tok_s": null,
+      "decode_draft_on_code_tok_s": null,
+      "build": "earlier build"
+    },
+    {
+      "change": "controller dot product in float pairs",
+      "decode_draft_off_ms_per_token": 14.43,
+      "decode_draft_on_prose_tok_s": 84.4,
+      "decode_draft_on_code_tok_s": 97.6,
+      "build": "earlier build"
+    },
+    {
+      "change": "the same for the visit's fourth controller",
+      "decode_draft_off_ms_per_token": 14.49,
+      "decode_draft_on_prose_tok_s": 84.0,
+      "decode_draft_on_code_tok_s": 97.1,
+      "build": "earlier build"
+    },
+    {
+      "change": "vocabulary projection as two launches",
+      "decode_draft_off_ms_per_token": 14.35,
+      "decode_draft_on_prose_tok_s": 84.7,
+      "decode_draft_on_code_tok_s": 98.0,
+      "build": "earlier build"
+    },
+    {
+      "change": "attention folds every row the way the one-token step does (this build)",
+      "decode_draft_off_ms_per_token": 14.32,
+      "decode_draft_on_prose_tok_s": 84.6,
+      "decode_draft_on_code_tok_s": 97.9,
+      "prompt_16384_tok_s": 1960,
+      "prompt_72644_ttft_s": 66.1,
+      "build": "this build"
+    }
+  ]
+}

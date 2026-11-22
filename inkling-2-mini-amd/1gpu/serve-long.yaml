@@ -1,0 +1,20 @@
+server:
+  host: 127.0.0.1
+  port: 8080
+  log: info
+  kernels: libr4d,spechub,libavx
+models:
+  inkling-2-mini:
+    model: /model/inkling-2-mini.rad
+    tp: 1
+    mm-max-patches: 1024
+    max-num-seqs: 1
+    max-num-batched-tokens: 2048
+    max-model-len: 212992
+    num-speculative-tokens: 7
+    draft-window: 3
+    prefix-cache-mib: 0
+    kv-cache-dtype: i8
+    prefix-resume: nearest
+    checkpoint-interval: 1024
+    prefill-span: 2
